@@ -20,7 +20,7 @@ export function RequestsPage() {
   const [selected, setSelected] = useState<ServiceRequest | null>(null);
   const [editing, setEditing] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState<ServiceRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [filtering, setFiltering] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -72,13 +72,14 @@ export function RequestsPage() {
   }
 
   async function remove() {
-    if (!selected) return;
-    const id = selected.id;
+    const target = deleting || selected;
+    if (!target) return;
+    const id = target.id;
     setSaving(true);
     setError('');
     try {
       await requestsApi.remove(id);
-      setConfirmingDelete(false);
+      setDeleting(null);
       setSelected(null);
       setEditing(false);
       toast.success('Request deleted successfully.');
@@ -154,10 +155,9 @@ export function RequestsPage() {
                 }}
                 onDelete={(request) => {
                   setError('');
-                  setSelected(request);
+                  setDeleting(request);
                   setCreating(false);
                   setEditing(false);
-                  setConfirmingDelete(true);
                 }}
                 onStatusChange={admin ? updateStatusInline : undefined}
               />
@@ -174,16 +174,16 @@ export function RequestsPage() {
         )}
         {selected && meta && (
           <RequestDetailsModal request={selected} meta={meta} admin={admin} editing={editing} saving={saving} error={error}
-            onClose={() => { setSelected(null); setEditing(false); setConfirmingDelete(false); setError(''); }}
+            onClose={() => { setSelected(null); setEditing(false); setDeleting(null); setError(''); }}
             onEdit={() => { setError(''); setEditing(true); }}
             onCancelEdit={() => setEditing(false)}
             onSave={async (fields) => mutate(() => requestsApi.update(selected.id, fields), 'Request updated successfully.')}
             onStatusChange={async (nextStatus) => mutate(() => requestsApi.status(selected.id, nextStatus), 'Status updated successfully.')}
-            onDelete={() => { setError(''); setConfirmingDelete(true); }} />
+            onDelete={() => { setError(''); setDeleting(selected); }} />
         )}
-        {confirmingDelete && selected && (
-          <DeleteRequestModal requestTitle={selected.title} saving={saving} error={error}
-            onClose={() => { setConfirmingDelete(false); setError(''); }} onConfirm={remove} />
+        {deleting && (
+          <DeleteRequestModal requestTitle={deleting.title} saving={saving} error={error}
+            onClose={() => { setDeleting(null); setError(''); }} onConfirm={remove} />
         )}
       </Suspense>
     </div>
