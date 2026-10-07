@@ -7,10 +7,8 @@ export const session = {
   clear: () => sessionStorage.removeItem(tokenKey),
 };
 
-const apiBase = (import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
-
 async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${apiBase}/api${path}`, {
+  const response = await fetch(`/api${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
