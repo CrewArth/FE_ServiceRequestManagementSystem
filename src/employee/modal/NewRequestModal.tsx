@@ -31,7 +31,7 @@ export function NewRequestModal({ meta, saving, error, onSubmit, onClose }: NewR
         event.preventDefault();
         if (!saving) onClose();
       }}
-      className="w-[calc(100%-2rem)] max-h-[90vh] max-w-xl overflow-y-auto rounded-lg border border-blue-100 bg-white p-6 shadow-xl backdrop:bg-blue-950/50 sm:p-8"
+      className="fixed left-1/2 top-1/2 m-0 w-[calc(100%-2rem)] max-h-[90vh] max-w-xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-blue-100 bg-white p-6 shadow-xl backdrop:bg-blue-950/50 sm:p-8"
     >
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>

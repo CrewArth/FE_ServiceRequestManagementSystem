@@ -9,6 +9,10 @@ export function PageLoading() {
   );
 }
 
+export function ContentLoading() {
+  return <div role="status" className="card text-sm text-slate-600">Loading page…</div>;
+}
+
 export function RequestLoading() {
   return (
     <div

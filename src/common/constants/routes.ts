@@ -1,3 +1,6 @@
 import { ROLES, type Role } from './roles';
 
-export const dashboardPath = (role: Role) => role === ROLES.ADMIN ? '/admin' : '/employee';
+const rolePath = (role: Role) => role === ROLES.ADMIN ? '/admin' : '/employee';
+
+export const dashboardPath = (role: Role) => `${rolePath(role)}/dashboard`;
+export const requestsPath = (role: Role) => `${rolePath(role)}/requests`;

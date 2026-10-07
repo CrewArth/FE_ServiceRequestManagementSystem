@@ -12,14 +12,20 @@ export const RegisterPage = lazy(() =>
   })),
 );
 
-export const EmployeeDashboard = lazy(() =>
-  import("../employee/pages/EmployeeDashboard").then((module) => ({
-    default: module.EmployeeDashboard,
+export const AppLayout = lazy(() =>
+  import("../layouts/AppLayout").then((module) => ({
+    default: module.AppLayout,
   })),
 );
 
-export const AdminDashboard = lazy(() =>
-  import("../admin/pages/AdminDashboard").then((module) => ({
-    default: module.AdminDashboard,
+export const DashboardPage = lazy(() =>
+  import("../dashboard/pages/DashboardPage").then((module) => ({
+    default: module.DashboardPage,
+  })),
+);
+
+export const RequestsPage = lazy(() =>
+  import("../requests/pages/RequestsPage").then((module) => ({
+    default: module.RequestsPage,
   })),
 );
