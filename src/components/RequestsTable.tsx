@@ -65,7 +65,7 @@ export function RequestsTable({
       }),
       column.display({
         id: "actions",
-        header: "",
+        header: "Actions",
         cell: (info) => (
           <button
             className="whitespace-nowrap font-semibold text-blue-700 hover:underline"

@@ -10,7 +10,7 @@
 body {
   font-family: var(--app-font-family);
   min-height: 100vh;
-  background: radial-gradient(circle at center, #ffffff 0%, #edf4fe 100%);
+  background: radial-gradient(circle at center, #ffffff 0%, #d6e2f4 100%);
   background-attachment: fixed;
   @apply text-slate-900 antialiased;
 }

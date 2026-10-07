@@ -107,7 +107,7 @@ export function RequestsPage() {
       ) : (
         <section className="card overflow-hidden p-0">
           <div className="flex flex-wrap items-center justify-between gap-3 overflow-x-auto border-b border-blue-100 px-4 py-3 sm:flex-nowrap">
-            <div><h2 className="text-lg font-bold text-blue-950">Request list <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">{requests.length}</span></h2><p className="text-xs text-slate-500">{status || priority ? 'Filtered results' : `${requests.length} requests`}</p></div>
+            <div><h2 className="text-lg font-bold text-blue-950">Request list <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">{requests.length}</span></h2><p className="text-xs text-slate-500"></p></div>
             <div className="flex flex-nowrap items-center gap-2 whitespace-nowrap sm:justify-end">
               <svg aria-hidden="true" className="h-4 w-4 shrink-0 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 5h16l-6 7v6l-4 2v-8L4 5Z" /></svg>
               <label className="text-xs font-medium text-slate-600" htmlFor="status-filter">Status</label>
