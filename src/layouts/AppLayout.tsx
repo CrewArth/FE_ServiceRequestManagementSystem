@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { dashboardPath, requestsPath } from '../common/constants/routes';
 import { ContentLoading } from '../lazy/LoadingFallback';
+import { AuthLoadingOverlay } from '../auth/components/AuthLoadingOverlay';
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors duration-200 ${
@@ -22,6 +23,7 @@ export function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
   useEffect(() => {
@@ -34,12 +36,17 @@ export function AppLayout() {
   if (!user) return null;
 
   function logout() {
-    signOut();
-    navigate('/login', { replace: true });
+    if (loggingOut) return;
+    setLoggingOut(true);
+    window.setTimeout(() => {
+      signOut();
+      navigate('/login', { replace: true });
+    }, 1000);
   }
 
   return (
     <div className="min-h-screen md:flex">
+      {loggingOut && <AuthLoadingOverlay message="" />}
       <header className="flex h-16 items-center justify-between border-b border-blue-100 bg-white px-4 md:hidden">
         <span className="font-bold text-blue-950">Service Request System</span>
         <button type="button" aria-label="Open navigation" aria-expanded={menuOpen} aria-controls="app-sidebar" onClick={() => setMenuOpen(true)} className="rounded-lg p-2 text-blue-900 hover:bg-blue-50">
@@ -49,7 +56,10 @@ export function AppLayout() {
       {menuOpen && <button type="button" className="fixed inset-0 z-40 bg-blue-950/40 md:hidden" aria-label="Close navigation" onClick={() => setMenuOpen(false)} />}
       <aside id="app-sidebar" className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-blue-100 bg-white px-4 py-6 shadow-xl transition-transform duration-200 md:sticky md:top-0 md:h-screen md:w-60 md:shrink-0 md:translate-x-0 md:shadow-none ${menuOpen ? 'visible translate-x-0' : 'invisible -translate-x-full md:visible'}`} aria-label="Sidebar">
         <div className="mb-8 flex items-start justify-between gap-3 px-2">
-          <div><span className="text-lg font-bold leading-tight text-blue-950">Service Request System</span><p className="mt-1 text-xs text-slate-500">Request management</p></div>
+          <div className="flex items-center gap-3">
+            <img src="/assets/logo.png" alt="" className="h-12 w-12 shrink-0 object-contain" />
+            <span className="text-base font-bold leading-tight text-blue-950">Service Request</span>
+          </div>
           <button type="button" className="rounded-md p-1 text-slate-500 hover:bg-blue-50 md:hidden" aria-label="Close navigation" onClick={() => setMenuOpen(false)}>✕</button>
         </div>
         <nav aria-label="Main navigation" className="space-y-1">
@@ -61,7 +71,7 @@ export function AppLayout() {
             <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-900">{user.name.trim().charAt(0).toUpperCase()}</span>
             <div className="min-w-0"><p className="truncate text-sm font-semibold text-blue-950">{user.name}</p><p className="text-xs capitalize text-slate-500">{user.role.toLowerCase()}</p></div>
           </div>
-          <button type="button" onClick={logout} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-600 transition-colors duration-200 hover:bg-blue-50 hover:text-blue-900">
+          <button type="button" onClick={logout} disabled={loggingOut} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-600 transition-colors duration-200 hover:bg-blue-50 hover:text-blue-900 disabled:cursor-not-allowed disabled:opacity-50">
             <svg aria-hidden="true" className="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M16 17l5-5-5-5M21 12H9" /></svg>
             Sign out
           </button>

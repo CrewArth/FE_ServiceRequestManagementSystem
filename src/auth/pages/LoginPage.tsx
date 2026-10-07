@@ -5,7 +5,7 @@ import { useAuth } from "../AuthContext";
 import { dashboardPath } from "../../common/constants/routes";
 import { authApi } from "../../utils/api";
 import { AuthShell } from "../components/AuthShell";
-import { ButtonSpinner } from "../../common/components/ButtonSpinner";
+import { AuthLoadingOverlay } from "../components/AuthLoadingOverlay";
 import { AuthInput } from "../components/AuthInput";
 import { isValidEmail } from "../authValidation";
 
@@ -45,11 +45,11 @@ export function LoginPage() {
 
   return (
     <AuthShell title="Welcome back" description="Sign in to manage and track your service requests.">
+        {saving && <AuthLoadingOverlay message="Signing in…" />}
         <form onSubmit={submit} className="space-y-5">
           <AuthInput id="login-email" label="Email" type="email" value={email} onChange={setEmail} onBlur={() => setTouched((current) => ({ ...current, email: true }))} placeholder="you@company.com" autoComplete="email" required disabled={saving} error={emailError} />
           <AuthInput id="login-password" label="Password" type="password" value={password} onChange={setPassword} onBlur={() => setTouched((current) => ({ ...current, password: true }))} placeholder="Enter your password" autoComplete="current-password" required disabled={saving} error={passwordError} />
           <button className="button w-full" disabled={saving}>
-            {saving && <ButtonSpinner />}
             {saving ? "Signing in…" : "Sign in"}
           </button>
         </form>

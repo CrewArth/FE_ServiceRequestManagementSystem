@@ -4,7 +4,7 @@ import { useAuth } from "../AuthContext";
 import { dashboardPath } from "../../common/constants/routes";
 import { authApi } from "../../utils/api";
 import { AuthShell } from "../components/AuthShell";
-import { ButtonSpinner } from "../../common/components/ButtonSpinner";
+import { AuthLoadingOverlay } from "../components/AuthLoadingOverlay";
 import { AuthInput } from "../components/AuthInput";
 import { isValidEmail } from "../authValidation";
 
@@ -52,6 +52,7 @@ export function RegisterPage() {
 
   return (
     <AuthShell title="Create your account" description="Create an employee account to submit and track service requests." compact>
+        {saving && <AuthLoadingOverlay message="Creating account…" />}
         <form onSubmit={submit} className="space-y-4">
           <AuthInput id="register-name" label="Name" type="text" value={name} onChange={setName} onBlur={() => setTouched((current) => ({ ...current, name: true }))} placeholder="Your full name" autoComplete="name" minLength={2} maxLength={80} required disabled={saving} error={nameError} />
           <AuthInput id="register-email" label="Email" type="email" value={email} onChange={setEmail} onBlur={() => setTouched((current) => ({ ...current, email: true }))} placeholder="you@company.com" autoComplete="email" maxLength={254} required disabled={saving} error={emailError} />
@@ -66,7 +67,6 @@ export function RegisterPage() {
             </p>
           )}
           <button className="button w-full" disabled={saving}>
-            {saving && <ButtonSpinner />}
             {saving ? "Creating account…" : "Create account"}
           </button>
         </form>
