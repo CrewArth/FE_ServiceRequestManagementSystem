@@ -2,15 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --app-font-family: "Google Sans", "Lato", "Roboto", sans-serif;
+  font-family: var(--app-font-family);
+}
+
 body {
-  font-family: 'Google Sans', 'Lato', 'Roboto', sans-serif;
+  font-family: var(--app-font-family);
   min-height: 100vh;
-  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+  background: radial-gradient(circle at center, #ffffff 0%, #edf4fe 100%);
   background-attachment: fixed;
   @apply text-slate-900 antialiased;
 }
-button, input, select, textarea { @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2; }
-.field { @apply w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400; }
-.button { @apply inline-flex items-center justify-center rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50; }
-.button-secondary { @apply inline-flex items-center justify-center rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50 disabled:opacity-50; }
-.card { @apply rounded-xl border border-blue-100 bg-white p-5 shadow-sm; }
+header,
+table,
+button,
+input,
+select,
+textarea,
+dialog {
+  font-family: var(--app-font-family);
+}
+button,
+input,
+select,
+textarea {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2;
+}
+.field {
+  @apply w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400;
+}
+.button {
+  @apply inline-flex items-center justify-center rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50;
+}
+.button-secondary {
+  @apply inline-flex items-center justify-center rounded-lg border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-800 hover:bg-blue-50 disabled:opacity-50;
+}
+.card {
+  @apply rounded-xl border border-blue-100 bg-white p-5 shadow-sm;
+}
