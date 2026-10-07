@@ -90,16 +90,29 @@ export function RequestsPage() {
     }
   }
 
+  async function updateStatusInline(request: ServiceRequest, status: string) {
+    setSaving(true);
+    try {
+      await requestsApi.status(request.id, status);
+      toast.success('Status updated successfully.');
+      await refresh();
+    } catch {
+      toast.error('Unable to update status. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader title="Requests" description="Create, track, and manage service requests." action={!admin && (
-          <button type="button" className="button" disabled={!meta || loading} onClick={() => {
-            setError('');
-            setCreating(true);
-            setSelected(null);
-            setEditing(false);
-          }}>+ New request</button>
-        )} />
+        <button type="button" className="button" disabled={!meta || loading} onClick={() => {
+          setError('');
+          setCreating(true);
+          setSelected(null);
+          setEditing(false);
+        }}>+ New request</button>
+      )} />
 
       {error && <div role="alert" className="rounded-lg border border-red-200 bg-white p-4 text-sm text-red-700">{error}</div>}
       {loading ? (
@@ -126,12 +139,28 @@ export function RequestsPage() {
           {(status || priority) && <p className="border-b border-blue-100 px-4 py-2 text-xs font-medium text-blue-800">Active filters: {[status && `Status: ${requestLabel(status)}`, priority && `Priority: ${requestLabel(priority)}`].filter(Boolean).join(' · ')}</p>}
           {filtering ? <RequestLoading /> : listError ? <EmptyState title="We couldn't load your requests" description="Please try again." action={<button type="button" className="button-secondary" onClick={() => { setFiltering(true); void refresh().then(() => setListError(false)).catch(() => setListError(true)).finally(() => setFiltering(false)); }}>Try again</button>} /> : (
             <Suspense fallback={<RequestLoading />}>
-              <RequestsTable requests={requests} admin={admin} filtered={Boolean(status || priority)} onClear={() => { setStatus(''); setPriority(''); }} onCreate={() => setCreating(true)} onSelect={(request) => {
-                setError('');
-                setSelected(request);
-                setCreating(false);
-                setEditing(false);
-              }} />
+              <RequestsTable
+                requests={requests}
+                admin={admin}
+                filtered={Boolean(status || priority)}
+                statuses={meta?.statuses ?? []}
+                onClear={() => { setStatus(''); setPriority(''); }}
+                onCreate={() => setCreating(true)}
+                onSelect={(request) => {
+                  setError('');
+                  setSelected(request);
+                  setCreating(false);
+                  setEditing(false);
+                }}
+                onDelete={(request) => {
+                  setError('');
+                  setSelected(request);
+                  setCreating(false);
+                  setEditing(false);
+                  setConfirmingDelete(true);
+                }}
+                onStatusChange={admin ? updateStatusInline : undefined}
+              />
             </Suspense>
           )}
         </section>

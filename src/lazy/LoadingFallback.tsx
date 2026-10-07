@@ -1,16 +1,18 @@
+import { AuthLoadingOverlay } from "../auth/components/AuthLoadingOverlay";
+
 export function PageLoading() {
   return (
     <div
       role="status"
       className="flex min-h-screen items-center justify-center text-blue-900"
     >
-      Loading page…
+      <AuthLoadingOverlay />
     </div>
   );
 }
 
 export function ContentLoading() {
-  return <div role="status" className="card text-sm text-slate-600">Loading page…</div>;
+  return <div role="status" className="card text-sm text-slate-600"> <AuthLoadingOverlay /></div>;
 }
 
 export function RequestLoading() {
@@ -27,7 +29,7 @@ export function DialogLoading() {
       role="status"
       className="fixed inset-0 z-50 flex items-center justify-center bg-blue-950/50 text-sm font-semibold text-white"
     >
-      Loading dialog…
+      <AuthLoadingOverlay />
     </div>
   );
 }
