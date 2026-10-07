@@ -30,7 +30,7 @@ export function DeleteRequestModal({ requestTitle, saving, error, onClose, onCon
         event.preventDefault();
         if (!saving) onClose();
       }}
-      className="w-[calc(100%-2rem)] max-w-md rounded-lg border border-blue-100 bg-white p-6 shadow-xl backdrop:bg-blue-950/50"
+      className="fixed left-1/2 top-1/2 m-0 w-[calc(100%-2rem)] max-h-[90vh] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-blue-100 bg-white p-6 shadow-xl backdrop:bg-blue-950/50"
     >
       <h2 id="delete-request-title" className="text-xl font-bold text-blue-950">Delete request?</h2>
       <p id="delete-request-description" className="mt-3 break-words text-sm leading-6 text-slate-700">
