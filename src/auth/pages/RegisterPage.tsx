@@ -47,6 +47,7 @@ export function RegisterPage() {
               minLength={2}
               maxLength={80}
               required
+              disabled={saving}
               placeholder="Your full name"
               autoComplete="name"
               onBlur={() => setTouched((current) => ({ ...current, name: true }))}
@@ -64,6 +65,7 @@ export function RegisterPage() {
               onBlur={() => setTouched((current) => ({ ...current, email: true }))}
               autoComplete="email"
               required
+              disabled={saving}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
@@ -86,6 +88,7 @@ export function RegisterPage() {
                 autoComplete="new-password"
                 minLength={8}
                 required
+                disabled={saving}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
               />
@@ -94,6 +97,7 @@ export function RegisterPage() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-700 hover:text-blue-900"
                 aria-label={showPassword ? "Hide password" : "Show password"}
                 aria-pressed={showPassword}
+                disabled={saving}
                 onClick={() => setShowPassword((visible) => !visible)}
               >
                 {showPassword ? "Hide" : "Show"}

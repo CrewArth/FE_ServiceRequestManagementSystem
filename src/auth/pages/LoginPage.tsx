@@ -33,7 +33,7 @@ export function LoginPage() {
   }
 
   return (
-    <AuthShell title="Welcome back" description="Sign in to manage and track service requests.">
+    <AuthShell title="Welcome back" description="Sign in to manage and track your service requests.">
         <form onSubmit={submit} className="space-y-4">
           <label className="block text-sm font-medium">
             Email
@@ -43,6 +43,7 @@ export function LoginPage() {
               placeholder="you@company.com"
               autoComplete="email"
               required
+              disabled={saving}
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
@@ -62,6 +63,7 @@ export function LoginPage() {
                 placeholder="Enter your password"
                 autoComplete="current-password"
                 required
+                disabled={saving}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
               />
@@ -70,6 +72,7 @@ export function LoginPage() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-blue-700 hover:text-blue-900"
                 aria-label={showPassword ? "Hide password" : "Show password"}
                 aria-pressed={showPassword}
+                disabled={saving}
                 onClick={() => setShowPassword((visible) => !visible)}
               >
                 {showPassword ? "Hide" : "Show"}
@@ -90,7 +93,7 @@ export function LoginPage() {
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-slate-600">
-          Employee without an account?{" "}
+          Don't have an account?{" "}
           <Link
             className="font-semibold text-blue-700 hover:underline"
             to="/register"
