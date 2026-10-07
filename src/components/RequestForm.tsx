@@ -5,6 +5,7 @@ import type {
   RequestFields,
   ServiceRequest,
 } from "../common/types/api.types";
+import { ButtonSpinner } from '../common/components/ButtonSpinner';
 
 const label = (value: string) =>
   value
@@ -29,6 +30,7 @@ export function RequestForm({
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<RequestFields>({
     defaultValues: {
@@ -38,6 +40,7 @@ export function RequestForm({
       priority: meta.priorities[0],
     },
   });
+  const descriptionLength = watch('description')?.length ?? 0;
   useEffect(() => {
     reset(
       request
@@ -62,6 +65,7 @@ export function RequestForm({
         Title
         <input
           className="field mt-1"
+          placeholder="Example: Office printer not working"
           {...register("title", {
             setValueAs: (value: string) => value.trim(),
             required: "Title is required",
@@ -78,6 +82,7 @@ export function RequestForm({
         <textarea
           rows={5}
           className="field mt-1"
+          placeholder="Describe the issue and what help you need"
           {...register("description", {
             setValueAs: (value: string) => value.trim(),
             required: "Description is required",
@@ -85,6 +90,7 @@ export function RequestForm({
             maxLength: { value: 2000, message: "Use at most 2000 characters" },
           })}
         />
+        <span className="mt-1 block text-right text-xs text-slate-500">{descriptionLength} / 2000</span>
         {errors.description && (
           <span className="text-xs text-red-700">
             {errors.description.message}
@@ -121,9 +127,10 @@ export function RequestForm({
       </div>
       <div className="flex gap-2">
         <button className="button" disabled={saving}>
-          {saving ? "Saving…" : request ? "Save changes" : "Create request"}
+          {saving && <ButtonSpinner />}
+          {saving ? request ? "Saving…" : "Creating…" : request ? "Save changes" : "Create request"}
         </button>
-        <button type="button" className="button-secondary" onClick={onCancel}>
+        <button type="button" className="button-secondary" disabled={saving} onClick={onCancel}>
           Cancel
         </button>
       </div>

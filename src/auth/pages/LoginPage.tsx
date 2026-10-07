@@ -3,6 +3,8 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { dashboardPath } from "../../common/constants/routes";
 import { authApi } from "../../utils/api";
+import { AuthShell } from "../components/AuthShell";
+import { ButtonSpinner } from "../../common/components/ButtonSpinner";
 
 export function LoginPage() {
   const { user, signIn } = useAuth();
@@ -16,6 +18,7 @@ export function LoginPage() {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (saving) return;
     setSaving(true);
     setError("");
     try {
@@ -23,24 +26,21 @@ export function LoginPage() {
       signIn(result);
       navigate(dashboardPath(result.user.role), { replace: true });
     } catch (cause) {
-      setError((cause as Error).message);
+      setError(/credential|invalid email or password/i.test((cause as Error).message) ? 'Incorrect email or password.' : 'Unable to sign in. Please try again.');
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md rounded-md border border-blue-100 bg-white p-8 shadow-sm">
-        <h2 className="mt-3 text-center text-2xl font-extrabold text-blue-950">
-          Sign in
-        </h2>
-        <form onSubmit={submit} className="mt-7 space-y-4">
+    <AuthShell title="Welcome back" description="Sign in to manage and track service requests.">
+        <form onSubmit={submit} className="space-y-4">
           <label className="block text-sm font-medium">
             Email
             <input
               className="field mt-1"
               type="email"
+              placeholder="you@company.com"
               autoComplete="email"
               required
               value={email}
@@ -59,6 +59,7 @@ export function LoginPage() {
                 id="login-password"
                 className="field mt-1 !pr-16"
                 type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
                 autoComplete="current-password"
                 required
                 value={password}
@@ -78,12 +79,13 @@ export function LoginPage() {
           {error && (
             <p
               role="alert"
-              className="rounded-lg bg-blue-50 p-3 text-sm text-red-700"
+              className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
             >
               {error}
             </p>
           )}
           <button className="button w-full" disabled={saving}>
+            {saving && <ButtonSpinner />}
             {saving ? "Signing in…" : "Sign in"}
           </button>
         </form>
@@ -96,7 +98,6 @@ export function LoginPage() {
             Sign up
           </Link>
         </p>
-      </div>
-    </main>
+    </AuthShell>
   );
 }

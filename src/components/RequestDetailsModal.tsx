@@ -1,8 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Meta, RequestFields, ServiceRequest } from '../common/types/api.types';
+import { RequestBadge, requestLabel } from '../requests/components/RequestBadge';
 import { RequestForm } from './RequestForm';
-
-const label = (value: string) => value.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
 
 type RequestDetailsModalProps = {
   request: ServiceRequest;
@@ -22,6 +21,7 @@ type RequestDetailsModalProps = {
 export function RequestDetailsModal({ request, meta, admin, editing, saving, error, onClose, onEdit, onCancelEdit, onSave, onStatusChange, onDelete }: RequestDetailsModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const canEdit = admin || request.status === 'OPEN';
+  const [nextStatus, setNextStatus] = useState(request.status);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -46,6 +46,7 @@ export function RequestDetailsModal({ request, meta, admin, editing, saving, err
       <div className="min-w-0">
         <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Request details</p>
         <h2 id="request-details-title" className="mt-1 break-words text-xl font-bold text-blue-950">{request.title}</h2>
+        <div className="mt-3 flex flex-wrap gap-2"><RequestBadge value={request.status} kind="status" /><RequestBadge value={request.priority} kind="priority" /></div>
       </div>
       <button type="button" className="rounded-md px-2 py-1 text-xl leading-none text-slate-500 hover:bg-blue-50 hover:text-blue-900 disabled:opacity-50" aria-label="Close request details" disabled={saving} onClick={onClose}>×</button>
     </div>
@@ -53,25 +54,24 @@ export function RequestDetailsModal({ request, meta, admin, editing, saving, err
     {error && <p role="alert" className="mt-5 rounded-md bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
     {editing ? <div className="mt-6"><RequestForm meta={meta} request={request} saving={saving} onSubmit={onSave} onCancel={() => { if (!saving) onCancelEdit(); }} /></div> : <>
-      <p className="mt-5 whitespace-pre-wrap text-sm leading-6 text-slate-700">{request.description}</p>
-      <dl className="mt-6 grid gap-4 border-t border-blue-100 pt-5 text-sm sm:grid-cols-2 lg:grid-cols-3">
-        <div><dt className="text-slate-500">Category</dt><dd className="mt-1 font-medium text-blue-950">{label(request.category)}</dd></div>
-        <div><dt className="text-slate-500">Priority</dt><dd className="mt-1 font-medium text-blue-950">{label(request.priority)}</dd></div>
-        <div><dt className="text-slate-500">Status</dt><dd className="mt-1 font-medium text-blue-950">{label(request.status)}</dd></div>
+      <section className="mt-6"><h3 className="text-sm font-semibold text-blue-950">Description</h3><p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{request.description}</p></section>
+      <section className="mt-6 border-t border-blue-100 pt-5"><h3 className="text-sm font-semibold text-blue-950">Request information</h3><dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-3">
+        <div><dt className="text-slate-500">Category</dt><dd className="mt-1 font-medium text-blue-950">{requestLabel(request.category)}</dd></div>
         <div><dt className="text-slate-500">Owner</dt><dd className="mt-1 font-medium text-blue-950">{request.owner.name}</dd></div>
         <div><dt className="text-slate-500">Created</dt><dd className="mt-1 font-medium text-blue-950">{new Date(request.createdAt).toLocaleString()}</dd></div>
         <div><dt className="text-slate-500">Updated</dt><dd className="mt-1 font-medium text-blue-950">{new Date(request.updatedAt).toLocaleString()}</dd></div>
         <div><dt className="text-slate-500">Overdue</dt><dd className="mt-1 font-medium text-blue-950">{request.overdue ? 'Yes' : 'No'}</dd></div>
-      </dl>
-      {admin && <label className="mt-6 block max-w-xs text-sm font-medium text-blue-950">Change status
-        <select className="field mt-1" value={request.status} disabled={saving} onChange={(event) => void onStatusChange(event.target.value)}>
-          {meta.statuses.map((value) => <option key={value} value={value}>{label(value)}</option>)}
-        </select>
-      </label>}
-      {canEdit && <div className="mt-6 flex gap-2 border-t border-blue-100 pt-5">
+      </dl></section>
+      {admin && <section className="mt-6 border-t border-blue-100 pt-5"><h3 className="text-sm font-semibold text-blue-950">Change status</h3><p className="mt-2 text-xs text-slate-500">Current status: {requestLabel(request.status)}</p><div className="mt-2 flex flex-wrap items-end gap-2"><label className="block max-w-xs flex-1 text-sm font-medium text-blue-950">Change to
+        <select className="field mt-1" value={nextStatus} disabled={saving} onChange={(event) => setNextStatus(event.target.value)}>
+          {meta.statuses.map((value) => <option key={value} value={value}>{requestLabel(value)}</option>)}
+        </select></label><button type="button" className="button" disabled={saving || nextStatus === request.status} onClick={() => void onStatusChange(nextStatus)}>Update status</button></div></section>}
+      <div className="mt-6 flex flex-wrap gap-2 border-t border-blue-100 pt-5">
+        {canEdit && <>
         <button type="button" className="button-secondary" disabled={saving} onClick={onEdit}>Edit</button>
         <button type="button" className="button-secondary text-red-700" disabled={saving} onClick={onDelete}>Delete</button>
-      </div>}
+        </>}
+      </div>
     </>}
   </dialog>;
 }

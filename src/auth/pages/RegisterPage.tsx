@@ -3,6 +3,8 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { dashboardPath } from "../../common/constants/routes";
 import { authApi } from "../../utils/api";
+import { AuthShell } from "../components/AuthShell";
+import { ButtonSpinner } from "../../common/components/ButtonSpinner";
 
 export function RegisterPage() {
   const { user, signIn } = useAuth();
@@ -13,10 +15,15 @@ export function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [touched, setTouched] = useState({ name: false, email: false, password: false });
+  const nameError = touched.name && name.trim().length < 2 ? 'Enter at least 2 characters.' : '';
+  const emailError = touched.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'Enter a valid email address.' : '';
+  const passwordError = touched.password && password.length < 8 ? 'Use at least 8 characters.' : '';
   if (user) return <Navigate to={dashboardPath(user.role)} replace />;
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    if (saving) return;
     setSaving(true);
     setError("");
     try {
@@ -24,19 +31,15 @@ export function RegisterPage() {
       signIn(result);
       navigate(dashboardPath(result.user.role), { replace: true });
     } catch (cause) {
-      setError((cause as Error).message);
+      setError((cause as Error).message.toLowerCase().includes('already') ? 'An account with this email already exists.' : 'Unable to create your account. Please try again.');
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="card w-full max-w-md p-8">
-        <h1 className="text-2xl font-bold text-blue-950 text-center">
-          Create Account
-        </h1>
-        <form onSubmit={submit} className="mt-7 space-y-4">
+    <AuthShell title="Create your account" description="Create an employee account to submit and track service requests.">
+        <form onSubmit={submit} className="space-y-4">
           <label className="block text-sm font-medium">
             Name
             <input
@@ -44,20 +47,27 @@ export function RegisterPage() {
               minLength={2}
               maxLength={80}
               required
+              placeholder="Your full name"
+              autoComplete="name"
+              onBlur={() => setTouched((current) => ({ ...current, name: true }))}
               value={name}
               onChange={(event) => setName(event.target.value)}
             />
+            {nameError && <span className="mt-1 block text-xs text-red-700">{nameError}</span>}
           </label>
           <label className="block text-sm font-medium">
             Email
             <input
               className="field mt-1"
               type="email"
+              placeholder="you@company.com"
+              onBlur={() => setTouched((current) => ({ ...current, email: true }))}
               autoComplete="email"
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
+            {emailError && <span className="mt-1 block text-xs text-red-700">{emailError}</span>}
           </label>
           <div>
             <label
@@ -71,6 +81,8 @@ export function RegisterPage() {
                 id="register-password"
                 className="field mt-1 !pr-16"
                 type={showPassword ? "text" : "password"}
+                placeholder="At least 8 characters"
+                onBlur={() => setTouched((current) => ({ ...current, password: true }))}
                 autoComplete="new-password"
                 minLength={8}
                 required
@@ -87,16 +99,18 @@ export function RegisterPage() {
                 {showPassword ? "Hide" : "Show"}
               </button>
             </div>
+            {passwordError && <p className="mt-1 text-xs text-red-700">{passwordError}</p>}
           </div>
           {error && (
             <p
               role="alert"
-              className="rounded-lg bg-blue-50 p-3 text-sm text-red-700"
+              className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
             >
               {error}
             </p>
           )}
           <button className="button w-full" disabled={saving}>
+            {saving && <ButtonSpinner />}
             {saving ? "Creating account…" : "Create account"}
           </button>
         </form>
@@ -109,7 +123,6 @@ export function RegisterPage() {
             Sign in
           </Link>
         </p>
-      </div>
-    </main>
+    </AuthShell>
   );
 }

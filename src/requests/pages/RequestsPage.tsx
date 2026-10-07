@@ -6,11 +6,9 @@ import type { Meta, RequestFields, ServiceRequest } from '../../common/types/api
 import { DialogLoading, RequestLoading } from '../../lazy/LoadingFallback';
 import { DeleteRequestModal, NewRequestModal, RequestDetailsModal, RequestsTable } from '../../lazy/requestComponents';
 import { requestsApi } from '../../utils/api';
-
-const label = (value: string) => value
-  .replace(/_/g, ' ')
-  .toLowerCase()
-  .replace(/\b\w/g, (letter) => letter.toUpperCase());
+import { PageHeader } from '../../common/components/PageHeader';
+import { EmptyState } from '../../common/components/EmptyState';
+import { requestLabel } from '../components/RequestBadge';
 
 export function RequestsPage() {
   const { user } = useAuth();
@@ -27,6 +25,7 @@ export function RequestsPage() {
   const [filtering, setFiltering] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [listError, setListError] = useState(false);
 
   const refresh = useCallback(async () => {
     setRequests(await requestsApi.list({
@@ -39,7 +38,7 @@ export function RequestsPage() {
     let active = true;
     requestsApi.meta()
       .then((value) => { if (active) setMeta(value); })
-      .catch((cause) => { if (active) setError((cause as Error).message); })
+      .catch(() => { if (active) setError('Unable to load request options. Please refresh the page.'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, []);
@@ -47,9 +46,10 @@ export function RequestsPage() {
   useEffect(() => {
     let active = true;
     setFiltering(true);
+    setListError(false);
     requestsApi.list({ status: status || undefined, priority: priority || undefined })
       .then((value) => { if (active) setRequests(value); })
-      .catch((cause) => { if (active) setError((cause as Error).message); })
+      .catch(() => { if (active) setListError(true); })
       .finally(() => { if (active) setFiltering(false); });
     return () => { active = false; };
   }, [status, priority]);
@@ -64,8 +64,8 @@ export function RequestsPage() {
       setSelected(null);
       toast.success(message);
       await refresh();
-    } catch (cause) {
-      setError((cause as Error).message);
+    } catch {
+      setError('Unable to save the request. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -81,10 +81,10 @@ export function RequestsPage() {
       setConfirmingDelete(false);
       setSelected(null);
       setEditing(false);
-      toast.success('Request deleted.');
+      toast.success('Request deleted successfully.');
       await refresh();
-    } catch (cause) {
-      setError((cause as Error).message);
+    } catch {
+      setError('Unable to delete the request. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -92,47 +92,41 @@ export function RequestsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">Requests</p>
-          <h1 className="mt-1 text-3xl font-bold text-blue-950">
-            {admin ? 'All service requests' : 'My service requests'}
-          </h1>
-        </div>
-        {!admin && (
+      <PageHeader title="Requests" description="Create, track, and manage service requests." action={!admin && (
           <button type="button" className="button" disabled={!meta || loading} onClick={() => {
             setError('');
             setCreating(true);
             setSelected(null);
             setEditing(false);
-          }}>New request</button>
-        )}
-      </div>
+          }}>+ New request</button>
+        )} />
 
       {error && <div role="alert" className="rounded-lg border border-red-200 bg-white p-4 text-sm text-red-700">{error}</div>}
       {loading ? (
-        <div role="status" className="card text-sm text-slate-600">Loading requests…</div>
+        <div role="status" className="card space-y-4"><div className="h-5 w-32 animate-pulse rounded bg-blue-100" /><div className="h-12 animate-pulse rounded bg-blue-50" /><div className="h-12 animate-pulse rounded bg-blue-50" /><div className="h-12 animate-pulse rounded bg-blue-50" /></div>
       ) : (
         <section className="card overflow-hidden p-0">
           <div className="flex flex-wrap items-center justify-between gap-3 overflow-x-auto border-b border-blue-100 px-4 py-3 sm:flex-nowrap">
-            <h2 className="text-lg font-bold text-blue-950">Requests <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">{requests.length}</span></h2>
+            <div><h2 className="text-lg font-bold text-blue-950">Request list <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 align-middle text-xs font-semibold text-blue-800">{requests.length}</span></h2><p className="text-xs text-slate-500">{status || priority ? 'Filtered results' : `${requests.length} requests`}</p></div>
             <div className="flex flex-nowrap items-center gap-2 whitespace-nowrap sm:justify-end">
-              <label className="sr-only" htmlFor="status-filter">Status</label>
-              <select id="status-filter" className="field !h-8 !w-28 !px-2 !py-1 !text-xs" value={status} onChange={(event) => setStatus(event.target.value)}>
+              <svg aria-hidden="true" className="h-4 w-4 shrink-0 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 5h16l-6 7v6l-4 2v-8L4 5Z" /></svg>
+              <label className="text-xs font-medium text-slate-600" htmlFor="status-filter">Status</label>
+              <select id="status-filter" className={`field !h-8 !w-28 !px-2 !py-1 !text-xs ${status ? '!border-blue-500 !bg-blue-50' : ''}`} value={status} onChange={(event) => setStatus(event.target.value)}>
                 <option value="">All statuses</option>
-                {meta?.statuses.map((value) => <option key={value} value={value}>{label(value)}</option>)}
+                {meta?.statuses.map((value) => <option key={value} value={value}>{requestLabel(value)}</option>)}
               </select>
-              <label className="sr-only" htmlFor="priority-filter">Priority</label>
-              <select id="priority-filter" className="field !h-8 !w-28 !px-2 !py-1 !text-xs" value={priority} onChange={(event) => setPriority(event.target.value)}>
+              <label className="text-xs font-medium text-slate-600" htmlFor="priority-filter">Priority</label>
+              <select id="priority-filter" className={`field !h-8 !w-28 !px-2 !py-1 !text-xs ${priority ? '!border-blue-500 !bg-blue-50' : ''}`} value={priority} onChange={(event) => setPriority(event.target.value)}>
                 <option value="">All priorities</option>
-                {meta?.priorities.map((value) => <option key={value} value={value}>{label(value)}</option>)}
+                {meta?.priorities.map((value) => <option key={value} value={value}>{requestLabel(value)}</option>)}
               </select>
-              <button type="button" className="button-secondary !h-8 !px-2 !py-1 !text-xs" disabled={!status && !priority} onClick={() => { setStatus(''); setPriority(''); }}>Clear</button>
+              <button type="button" className="button-secondary !h-8 !px-2 !py-1 !text-xs" disabled={!status && !priority} onClick={() => { setStatus(''); setPriority(''); }}>Clear filters</button>
             </div>
           </div>
-          {filtering ? <RequestLoading /> : (
+          {(status || priority) && <p className="border-b border-blue-100 px-4 py-2 text-xs font-medium text-blue-800">Active filters: {[status && `Status: ${requestLabel(status)}`, priority && `Priority: ${requestLabel(priority)}`].filter(Boolean).join(' · ')}</p>}
+          {filtering ? <RequestLoading /> : listError ? <EmptyState title="We couldn't load your requests" description="Please try again." action={<button type="button" className="button-secondary" onClick={() => { setFiltering(true); void refresh().then(() => setListError(false)).catch(() => setListError(true)).finally(() => setFiltering(false)); }}>Try again</button>} /> : (
             <Suspense fallback={<RequestLoading />}>
-              <RequestsTable requests={requests} admin={admin} onSelect={(request) => {
+              <RequestsTable requests={requests} admin={admin} filtered={Boolean(status || priority)} onClear={() => { setStatus(''); setPriority(''); }} onCreate={() => setCreating(true)} onSelect={(request) => {
                 setError('');
                 setSelected(request);
                 setCreating(false);
@@ -146,7 +140,7 @@ export function RequestsPage() {
       <Suspense fallback={<DialogLoading />}>
         {!admin && creating && meta && (
           <NewRequestModal meta={meta} saving={saving} error={error}
-            onSubmit={async (fields: RequestFields) => mutate(() => requestsApi.create(fields), 'Request created.')}
+            onSubmit={async (fields: RequestFields) => mutate(() => requestsApi.create(fields), 'Request created successfully.')}
             onClose={() => setCreating(false)} />
         )}
         {selected && meta && (
@@ -154,8 +148,8 @@ export function RequestsPage() {
             onClose={() => { setSelected(null); setEditing(false); setConfirmingDelete(false); setError(''); }}
             onEdit={() => { setError(''); setEditing(true); }}
             onCancelEdit={() => setEditing(false)}
-            onSave={async (fields) => mutate(() => requestsApi.update(selected.id, fields), 'Request updated.')}
-            onStatusChange={async (nextStatus) => mutate(() => requestsApi.status(selected.id, nextStatus), 'Status updated.')}
+            onSave={async (fields) => mutate(() => requestsApi.update(selected.id, fields), 'Request updated successfully.')}
+            onStatusChange={async (nextStatus) => mutate(() => requestsApi.status(selected.id, nextStatus), 'Status updated successfully.')}
             onDelete={() => { setError(''); setConfirmingDelete(true); }} />
         )}
         {confirmingDelete && selected && (

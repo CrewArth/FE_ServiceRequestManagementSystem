@@ -3,33 +3,29 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import type { ServiceRequest } from "../common/types/api.types";
+import { EmptyState } from "../common/components/EmptyState";
+import { RequestBadge, requestLabel } from "../requests/components/RequestBadge";
 
 const column = createColumnHelper<ServiceRequest>();
-const label = (value: string) =>
-  value
-    .replace(/_/g, " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 const date = (value: string) => new Date(value).toLocaleDateString();
-
-function StatusBadge({ status }: { status: string }) {
-  return (
-    <span className="inline-flex whitespace-nowrap rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800">
-      {label(status)}
-    </span>
-  );
-}
 
 export function RequestsTable({
   requests,
   admin,
+  filtered,
+  onClear,
+  onCreate,
   onSelect,
 }: {
   requests: ServiceRequest[];
   admin: boolean;
+  filtered: boolean;
+  onClear: () => void;
+  onCreate: () => void;
   onSelect: (request: ServiceRequest) => void;
 }) {
   const columns = useMemo(
@@ -49,18 +45,22 @@ export function RequestsTable({
       ...(admin ? [column.accessor("owner.name", { header: "Employee" })] : []),
       column.accessor("category", {
         header: "Category",
-        cell: (info) => label(info.getValue()),
+        cell: (info) => requestLabel(info.getValue()),
       }),
       column.accessor("priority", {
         header: "Priority",
-        cell: (info) => label(info.getValue()),
+        cell: (info) => <RequestBadge value={info.getValue()} kind="priority" />,
       }),
       column.accessor("status", {
         header: "Status",
-        cell: (info) => <StatusBadge status={info.getValue()} />,
+        cell: (info) => <RequestBadge value={info.getValue()} kind="status" />,
       }),
       column.accessor("createdAt", {
         header: "Created",
+        cell: (info) => date(info.getValue()),
+      }),
+      column.accessor("updatedAt", {
+        header: "Updated",
         cell: (info) => date(info.getValue()),
       }),
       column.display({
@@ -82,25 +82,23 @@ export function RequestsTable({
     data: requests,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    autoResetPageIndex: true,
+    initialState: { pagination: { pageIndex: 0, pageSize: 10 } },
   });
 
   if (!requests.length) {
-    return (
-      <div className="px-5 py-12 text-center">
-        <p className="font-semibold text-blue-950">No requests found</p>
-        <p className="mt-1 text-sm text-slate-500">
-          Try another status or priority filter.
-        </p>
-      </div>
-    );
+    return filtered
+      ? <EmptyState title="No requests match these filters" description="Try changing or clearing the active filters." action={<button type="button" className="button-secondary" onClick={onClear}>Clear filters</button>} />
+      : <EmptyState title={admin ? 'No service requests found' : 'No requests yet'} description={admin ? 'Service requests will appear here when employees create them.' : 'Create your first service request to start tracking it here.'} action={!admin && <button type="button" className="button" onClick={onCreate}>Create request</button>} />;
   }
 
   return (
     <>
       <div className="grid gap-3 p-4 lg:hidden">
-        {requests.map((request) => (
+        {table.getRowModel().rows.map(({ original: request }) => (
           <article
-            className="rounded-lg border border-blue-100 bg-white p-4"
+            className="rounded-lg border border-blue-100 bg-white p-4 transition-colors duration-200 hover:border-blue-200 hover:bg-blue-50/40"
             key={request.id}
           >
             <div className="flex items-start justify-between gap-3">
@@ -110,8 +108,9 @@ export function RequestsTable({
               >
                 {request.title}
               </button>
-              <StatusBadge status={request.status} />
+              <RequestBadge value={request.status} kind="status" />
             </div>
+            <div className="mt-3"><RequestBadge value={request.priority} kind="priority" /></div>
             <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
               {admin && (
                 <div>
@@ -124,13 +123,7 @@ export function RequestsTable({
               <div>
                 <dt className="text-xs text-slate-500">Category</dt>
                 <dd className="mt-0.5 font-medium">
-                  {label(request.category)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-xs text-slate-500">Priority</dt>
-                <dd className="mt-0.5 font-medium">
-                  {label(request.priority)}
+                  {requestLabel(request.category)}
                 </dd>
               </div>
               <div>
@@ -171,7 +164,7 @@ export function RequestsTable({
           <tbody>
             {table.getRowModel().rows.map((row) => (
               <tr
-                className="border-b border-blue-50 last:border-b-0 hover:bg-blue-50/60"
+                className="border-b border-blue-50 transition-colors duration-200 last:border-b-0 hover:bg-blue-50/60"
                 key={row.id}
               >
                 {row.getVisibleCells().map((cell) => (
@@ -184,6 +177,20 @@ export function RequestsTable({
           </tbody>
         </table>
       </div>
+      <nav aria-label="Request pages" className="flex flex-wrap items-center justify-between gap-3 border-t border-blue-100 px-4 py-3 text-sm text-slate-600 sm:px-5">
+        <span>
+          Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}–{Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, requests.length)} of {requests.length}
+        </span>
+        <div className="flex items-center gap-2">
+          <label htmlFor="request-page-size" className="sr-only">Requests per page</label>
+          <select id="request-page-size" className="field !w-auto !py-1" value={table.getState().pagination.pageSize} onChange={(event) => table.setPageSize(Number(event.target.value))}>
+            {[10, 25, 50].map((size) => <option key={size} value={size}>{size} per page</option>)}
+          </select>
+          <button type="button" className="button-secondary !px-3 !py-1" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>Previous</button>
+          <span className="whitespace-nowrap text-xs">{table.getState().pagination.pageIndex + 1} / {table.getPageCount()}</span>
+          <button type="button" className="button-secondary !px-3 !py-1" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>Next</button>
+        </div>
+      </nav>
     </>
   );
 }

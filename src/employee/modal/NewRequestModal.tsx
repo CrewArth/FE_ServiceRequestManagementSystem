@@ -35,8 +35,8 @@ export function NewRequestModal({ meta, saving, error, onSubmit, onClose }: NewR
     >
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">Employee request</p>
-          <h2 id="new-request-title" className="mt-1 text-xl font-bold text-blue-950">New request</h2>
+          <h2 id="new-request-title" className="text-xl font-bold text-blue-950">Create service request</h2>
+          <p className="mt-1 text-sm text-slate-600">Provide the details below and we’ll add it to your request list.</p>
         </div>
         <button
           type="button"

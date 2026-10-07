@@ -15,11 +15,8 @@ export function ContentLoading() {
 
 export function RequestLoading() {
   return (
-    <div
-      role="status"
-      className="px-5 py-12 text-center text-sm text-slate-600"
-    >
-      Loading requests…
+    <div role="status" aria-label="Loading requests" className="space-y-3 p-5">
+      {[0, 1, 2].map((row) => <div key={row} className="h-12 animate-pulse rounded-lg bg-blue-50" />)}
     </div>
   );
 }
